@@ -4,11 +4,11 @@ import { differenceInDays, isPast, isToday, isTomorrow } from 'date-fns';
 import axios from 'axios';
 
 const STATUS_STYLES = {
-  Pending:    'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30',
-  Assessment: 'bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30',
-  Interview:  'bg-sky-500/20 text-sky-600 dark:text-sky-400 border-sky-500/30',
-  Rejected:   'bg-red-500/20 text-red-600 dark:text-red-400 border-red-500/30',
-  Selected:   'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
+  Pending:    'bg-amber-500/20 text-amber-500 border-amber-500/30',
+  Assessment: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+  Interview:  'bg-sky-500/20 text-sky-400 border-sky-500/30',
+  Rejected:   'bg-red-500/20 text-red-400 border-red-500/30',
+  Selected:   'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
 };
 
 export default function Dashboard() {
@@ -52,15 +52,15 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="space-y-7 max-w-6xl mx-auto">
+    <div className="space-y-6 max-w-6xl mx-auto">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1">Overview of your job search journey.</p>
+        <h1 className="text-xl md:text-2xl font-bold text-foreground tracking-tight">Dashboard</h1>
+        <p className="text-xs md:text-sm text-muted-foreground mt-1">Overview of your job search journey.</p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats grid — 2 cols on mobile, 4 on large */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {stats.map((s, i) => {
           const Icon = s.icon;
           const isActive = active === s.filter;
@@ -68,19 +68,19 @@ export default function Dashboard() {
             <div
               key={i}
               onClick={() => setActive(isActive ? null : s.filter)}
-              className={`glass-panel p-5 cursor-pointer hover-lift transition-all duration-200 select-none ${isActive ? 'ring-2 ring-primary/60' : ''}`}
+              className={`glass-panel p-4 md:p-5 cursor-pointer hover-lift transition-all duration-200 select-none ${isActive ? 'ring-2 ring-primary/60' : ''}`}
             >
-              <div className="flex items-start justify-between mb-3">
+              <div className="flex items-start justify-between mb-2 md:mb-3">
                 <div className="p-2 rounded-xl" style={{ background: `${s.color}18` }}>
-                  <Icon size={18} style={{ color: s.color }} />
+                  <Icon size={17} style={{ color: s.color }} />
                 </div>
                 {isActive && (
                   <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border text-primary border-primary/40 bg-primary/10">Active</span>
                 )}
               </div>
-              <p className="text-2xl font-bold text-foreground">{s.value}</p>
+              <p className="text-xl md:text-2xl font-bold text-foreground">{s.value}</p>
               <p className="text-xs font-semibold text-foreground mt-0.5">{s.label}</p>
-              <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+              <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
                 <TrendingUp size={11} style={{ color: s.color }} />{s.sub}
               </p>
             </div>
@@ -88,13 +88,41 @@ export default function Dashboard() {
         })}
       </div>
 
-      {/* Filtered table */}
+      {/* Filtered results */}
       {active && (
         <div>
-          <h3 className="text-base font-semibold text-foreground mb-3">
+          <h3 className="text-sm md:text-base font-semibold text-foreground mb-3">
             {stats.find(s => s.filter === active)?.label} Applications
           </h3>
-          <div className="glass-panel overflow-hidden">
+
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-3">
+            {filtered.length === 0 ? (
+              <p className="text-center text-muted-foreground text-sm py-8">No applications in this category.</p>
+            ) : filtered.map(app => (
+              <div key={app._id} className="glass-panel p-4 rounded-2xl">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div>
+                    <p className="font-bold text-foreground text-sm">{app.company}</p>
+                    {app.role && <p className="text-xs text-muted-foreground">{app.role}</p>}
+                  </div>
+                  <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border flex-shrink-0 ${STATUS_STYLES[app.status]}`}>
+                    {app.status}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                  <span>{new Date(app.dateApplied).toLocaleDateString()}</span>
+                  <span>{differenceInDays(new Date(), new Date(app.dateApplied))}d ago</span>
+                </div>
+                {app.assessmentDate && (app.status === 'Assessment' || app.status === 'Interview') && (
+                  <p className="text-[11px] text-violet-400 mt-1.5">📅 {new Date(app.assessmentDate).toLocaleDateString()}</p>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table */}
+          <div className="glass-panel overflow-hidden hidden md:block">
             <table className="w-full text-sm text-left border-collapse">
               <thead>
                 <tr className="border-b border-border text-xs text-muted-foreground uppercase tracking-wider">

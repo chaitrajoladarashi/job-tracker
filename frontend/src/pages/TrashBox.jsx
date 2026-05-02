@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCcw, Trash } from 'lucide-react';
+import { RefreshCcw, Trash, Calendar } from 'lucide-react';
 import axios from 'axios';
 
 const STATUS_STYLES = {
-  Pending:    'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30',
-  Assessment: 'bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30',
-  Interview:  'bg-sky-500/20 text-sky-600 dark:text-sky-400 border-sky-500/30',
-  Rejected:   'bg-red-500/20 text-red-600 dark:text-red-400 border-red-500/30',
-  Selected:   'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
+  Pending:    'bg-amber-500/20 text-amber-500 border-amber-500/30',
+  Assessment: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+  Interview:  'bg-sky-500/20 text-sky-400 border-sky-500/30',
+  Rejected:   'bg-red-500/20 text-red-400 border-red-500/30',
+  Selected:   'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
 };
 
 export default function TrashBox() {
@@ -35,15 +35,56 @@ export default function TrashBox() {
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-5 max-w-5xl mx-auto">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
+        <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
           <Trash size={20} className="text-muted-foreground" /> Trash Box
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">Deleted applications — restore or permanently remove them.</p>
+        <p className="text-xs md:text-sm text-muted-foreground mt-1">Deleted applications — restore or permanently remove them.</p>
       </div>
 
-      <div className="glass-panel overflow-hidden">
+      {/* ── Mobile Cards ── */}
+      <div className="md:hidden space-y-3">
+        {loading ? (
+          <div className="py-10 text-center text-muted-foreground text-sm">Loading…</div>
+        ) : items.length === 0 ? (
+          <div className="glass-panel py-16 text-center">
+            <Trash size={32} className="text-muted-foreground opacity-30 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">Trash is empty.</p>
+          </div>
+        ) : items.map((app, i) => (
+          <div key={app._id} className="glass-panel p-4 rounded-2xl opacity-80">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="min-w-0">
+                <p className="font-bold text-foreground text-sm truncate">{app.company}</p>
+                {app.role && <p className="text-xs text-muted-foreground truncate">{app.role}</p>}
+              </div>
+              <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border flex-shrink-0 ${STATUS_STYLES[app.status]}`}>
+                {app.status}
+              </span>
+            </div>
+            <div className="flex items-center justify-between mt-3 pt-2 border-t border-border/50">
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Calendar size={11} />
+                {new Date(app.dateApplied).toLocaleDateString()}
+              </span>
+              <div className="flex gap-1">
+                <button onClick={() => restore(app._id)}
+                  className="p-1.5 rounded-lg text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/10 transition-all" title="Restore">
+                  <RefreshCcw size={14}/>
+                </button>
+                <button onClick={() => hardDelete(app._id)}
+                  className="p-1.5 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-all" title="Delete permanently">
+                  <Trash size={14}/>
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Desktop Table ── */}
+      <div className="glass-panel overflow-hidden hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left border-collapse">
             <thead>
